@@ -239,7 +239,12 @@ export default function outputStyles(pi: ExtensionAPI) {
 	const choose = (name: string | undefined, ctx: ExtensionContext): void => {
 		activeName = name;
 		const failure = writeActiveStyle(stateFile, name);
-		const success = name ? `Output style set to ${name} (applies next turn)` : "Output style off";
+		// The style replaces the whole system prompt, so a switch invalidates the provider's
+		// prompt cache for the coming turn -- one-time cost, not an alarm. Focus rules: two-word
+		// front-load, ASCII, no second question buried in a notice.
+		const success = name
+			? `Output style ${name} -- applies next turn; first request after a switch re-reads the full prompt (cache miss, one-time)`
+			: "Output style off -- first request re-reads the full prompt (cache miss, one-time)";
 		ctx.ui.notify(failure ?? success, failure ? "error" : "info");
 	};
 
