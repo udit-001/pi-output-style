@@ -263,9 +263,12 @@ export default function outputStyles(pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("style", {
-		description: "Choose the active output style (or /style <name>)",
+		description: "Choose the active output style (/style <name|off|reload|create>)",
 		getArgumentCompletions: (argumentPrefix: string) => {
 			const prefix = argumentPrefix.trim().toLowerCase();
+			if ("create".startsWith(prefix) && prefix.length > 0) return [{ value: "create", label: "create" }];
+			if (["reload", "off"].some((k) => k.startsWith(prefix) && prefix.length > 0))
+				return ["reload", "off"].filter((k) => k.startsWith(prefix)).map((value) => ({ value, label: value }));
 			return styles
 				.filter((style) => style.name.toLowerCase().startsWith(prefix))
 				.map((style) => ({
@@ -280,6 +283,15 @@ export default function outputStyles(pi: ExtensionAPI) {
 			if (requested === "reload") {
 				styles = discoverStyles(scopeFor(ctx));
 				ctx.ui.notify(`Reloaded ${styles.length} style(s)`, "info");
+				return;
+			}
+
+			if (requested === "create") {
+				if (!ctx.isIdle()) {
+					ctx.ui.notify("Agent is busy; wait for the current turn to finish", "warning");
+					return;
+				}
+				pi.sendUserMessage("Use the create-output-style skill to write an output style.");
 				return;
 			}
 
