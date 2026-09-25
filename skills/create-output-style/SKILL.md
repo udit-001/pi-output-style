@@ -1,6 +1,7 @@
 ---
 name: create-output-style
-description: Writes a pi output style file. Fire when the user wants to create, write, or save an output style — including via /style create.
+description: Write an output style file through a short interview. Runs only via /style create or /skill:create-output-style.
+disable-model-invocation: true
 ---
 
 # Create an output style
@@ -14,7 +15,7 @@ One question at a time, and only what the draft needs:
 1. **The behavior** — "How should the agent respond? Give 2-3 examples of the reply style you want, or of replies you hate."
 2. **The name** — suggest one from the behavior (lowercase, no spaces); let the user keep or change it.
 
-Stop when a question's answer is already in hand — a `/style create` argument or an earlier turn may carry it. Then confirm the plan in one line: style name, the behavior summary, `keep-coding-instructions` choice.
+Stop when a question's answer is already in hand — the invoking command's argument or an earlier turn may carry it. Then confirm the plan in one line: style name, the behavior summary, `keep-coding-instructions` choice.
 
 ## Write the file
 

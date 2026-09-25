@@ -324,8 +324,7 @@ test("/style create hands the interview to the skill message, hint included", as
 
 	await commands.get("style")!.handler("create list-only replies, one bullet per idea", ctx);
 	assert.equal(sentMessages.length, 1);
-	assert.match(sentMessages[0]!, /create-output-style skill/);
-	assert.match(sentMessages[0]!, /Request: list-only replies, one bullet per idea/);
+	assert.equal(sentMessages[0], "/skill:create-output-style list-only replies, one bullet per idea");
 	assert.deepEqual(ctx.notices, []);
 });
 

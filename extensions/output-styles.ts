@@ -217,9 +217,9 @@ export function writeActiveStyle(file: string, name: string | undefined): string
 export default function outputStyles(pi: ExtensionAPI) {
 	const builtinDir = path.join(import.meta.dirname, "..", "styles");
 	const stateFile = path.join(getAgentDir(), "output-styles.json");
-	/** The interview skill behind /style create: the message names the skill, the skill owns
-	 * the interview. Renaming the packaged skill is a one-place edit here. */
-	const CREATE_SKILL_PROMPT = "Use the create-output-style skill to write an output style";
+	/** The interview skill behind /style create, sent as a /skill: command so pi inlines the
+	 * skill body with the user's hint. The skill is user-invoked only; this is its only trigger. */
+	const CREATE_SKILL_PROMPT = "/skill:create-output-style";
 
 	let styles: OutputStyle[] = [];
 	let activeName: string | undefined;
@@ -301,7 +301,7 @@ export default function outputStyles(pi: ExtensionAPI) {
 					return;
 				}
 				const hint = requested.length > "create".length ? requested.slice("create".length + 1).trim() : "";
-				pi.sendUserMessage(hint ? `${CREATE_SKILL_PROMPT}. Request: ${hint}` : `${CREATE_SKILL_PROMPT}.`);
+				pi.sendUserMessage(`/skill:create-output-style${hint ? ` ${hint}` : ""}`);
 				return;
 			}
 
