@@ -1,0 +1,17 @@
+{
+  "name": "pi-output-styles",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Output styles for pi: switchable instructions-only style files, /style command, five styles included",
+  "pi": {
+    "extensions": ["./extensions"]
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test test/output-styles.test.ts",
+    "link-pi": "node scripts/link-pi.mjs"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": ">=0.79.1"
+  }
+}
