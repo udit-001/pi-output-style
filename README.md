@@ -8,7 +8,7 @@ Switch how your pi agent answers with one command. A style is a markdown file �
 pi install git:github.com/udit-001/pi-output-style   # then restart pi
 ```
 
-`pi install` clones the repo into `~/.pi/agent/git/`; to pick up new styles, re-run `pi update --extensions` and restart pi. Remove it with `pi remove git:github.com/udit-001/pi-output-style`.
+`pi install` clones the repo into `~/.pi/agent/git/`; to pick up new styles, re-run `pi update --extensions` and restart pi. Remove it with `pi remove git:github.com/udit-001/pi-output-style`. Nothing leaves your machine: styles are plain markdown files read from local directories, and switching one touches no network call beyond the model request itself.
 
 ## What you get
 
@@ -31,9 +31,18 @@ Switch any time; the choice persists across sessions.
 
 The active style is stored in `~/.pi/agent/output-styles.json` and reapplies on the next session. `/style <name>` works headless (`pi -p`); the picker needs interactive mode.
 
+Switching costs one cache miss: the first request after a `/style` change re-reads the full system prompt, so you pay it once per switch, never per turn.
+
 ## Write your own
 
-Drop a `.md` file in any style directory. Frontmatter is optional:
+Drop a `.md` file in any style directory, or let the agent interview you into one:
+
+```
+/style create              -- agent asks how replies should read, then writes the file
+/style create very terse   -- same, seeded with a hint
+```
+
+Frontmatter is optional:
 
 ```markdown
 ---
@@ -72,8 +81,8 @@ Project directories load only for a trusted project: a style body is injected ve
 ## Development
 
 ```bash
-node scripts/link-pi.mjs .                        # junction pi into node_modules for the tests
-node --experimental-strip-types --test test/      # 19 tests
+node scripts/link-pi.mjs                     # junction pi into node_modules for the tests
+node --experimental-strip-types --test test/output-styles.test.ts   # 22 tests
 ```
 
 Conventions and reasoning the code can't carry — the replace-semantics canary, the trust boundary, the test seam — live in [AGENTS.md](AGENTS.md).
