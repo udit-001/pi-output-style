@@ -53,7 +53,7 @@ Lead with the result...
 | `description` | One-line summary in the picker and completions. |
 | `keep-coding-instructions` | `false` (default): replace pi's default coding prose. `true`: append the style after pi's default prompt. `yes`/`on`/`1` count as true. |
 
-**Replace vs append.** With `keep-coding-instructions: false`, everything up to the last line of pi's default coding instructions is dropped and the rest — append text, context files, skills, working directory, other extensions' additions — is kept. So a style can redefine *how the agent works* without breaking tool rules or project context. If the marker is absent (a custom `SYSTEM.md`), the style appends instead of clobbering it.
+**Replace vs append.** With `keep-coding-instructions: false`, pi's default coding prose gives way to the style; project context, skills, and other extensions' additions survive either way. A style can redefine *how the agent works* without breaking tool rules.
 
 ## Where styles are read from
 
@@ -76,6 +76,4 @@ node scripts/link-pi.mjs .                        # junction pi into node_module
 node --experimental-strip-types --test test/      # 19 tests
 ```
 
-`test/output-styles.test.ts` runs against temp directories with no mocking — the filesystem and the config locations are the seam the tests and the runtime both cross. `CODING_BASE_MARKER` is pinned by a canary test against the installed pi build: if pi rewords the tail of its system prompt, that test fails rather than replace silently degrading to append.
-
-Everything under test takes its inputs as arguments (`StyleScope`, an explicit state-file path). The default export is the only place that reads the environment, and its job is wiring.
+Conventions and reasoning the code can't carry — the replace-semantics canary, the trust boundary, the test seam — live in [AGENTS.md](AGENTS.md).
