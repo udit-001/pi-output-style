@@ -218,21 +218,25 @@ function fakePi(): {
 	pi: ExtensionAPI;
 	handlers: Map<string, (event: any, ctx: any) => Promise<any>>;
 	commands: Map<string, { handler: (args: string, ctx: any) => Promise<void>; getArgumentCompletions: (prefix: string) => { value: string }[] | null }>;
+	sentMessages: string[];
 } {
 	const handlers = new Map<string, (event: any, ctx: any) => Promise<any>>();
 	const commands = new Map<string, { handler: (args: string, ctx: any) => Promise<void>; getArgumentCompletions: (prefix: string) => { value: string }[] | null }>();
+	const sentMessages: string[] = [];
 	const pi = {
 		on: (event: string, handler: never) => handlers.set(event, handler),
 		registerCommand: (name: string, options: never) => commands.set(name, options),
+		sendUserMessage: (message: string) => sentMessages.push(message),
 	} as unknown as ExtensionAPI;
-	return { pi, handlers, commands };
+	return { pi, handlers, commands, sentMessages };
 }
 
-function fakeCtx(cwd: string, opts: { hasUI?: boolean } = {}) {
+function fakeCtx(cwd: string, opts: { hasUI?: boolean; idle?: boolean } = {}) {
 	const notices: string[] = [];
 	return {
 		cwd,
 		hasUI: opts.hasUI ?? false,
+		isIdle: () => opts.idle ?? true,
 		isProjectTrusted: () => true,
 		ui: { notify: (message: string) => notices.push(message), select: async () => undefined },
 		notices,
@@ -309,5 +313,51 @@ test("/style reports an unknown name instead of guessing", async () => {
 		assert.match(notice, /Unknown output style: Nope/);
 		assert.match(notice, /Mine/);
 		assert.equal(readActiveStyle(join(agentDir, "output-styles.json")), undefined);
+	});
+});
+
+test("/style create hands the interview to the skill message, hint included", async () => {
+	const { pi, handlers, commands, sentMessages } = fakePi();
+	outputStyles(pi);
+	const ctx = fakeCtx(temp());
+	await handlers.get("session_start")!({}, ctx);
+
+	await commands.get("style")!.handler("create list-only replies, one bullet per idea", ctx);
+	assert.equal(sentMessages.length, 1);
+	assert.match(sentMessages[0]!, /create-output-style skill/);
+	assert.match(sentMessages[0]!, /Request: list-only replies, one bullet per idea/);
+	assert.deepEqual(ctx.notices, []);
+});
+
+test("/style create while the agent is busy warns and sends nothing", async () => {
+	const { pi, handlers, commands, sentMessages } = fakePi();
+	outputStyles(pi);
+	const ctx = fakeCtx(temp(), { idle: false });
+	await handlers.get("session_start")!({}, ctx);
+
+	await commands.get("style")!.handler("create", ctx);
+	assert.equal(sentMessages.length, 0);
+	assert.match(ctx.notices.at(-1) ?? "", /busy/);
+});
+
+test("completions merge verbs and style names for one flat prefix surface", async () => {
+	const agentDir = temp();
+	await withIsolatedEnv(agentDir, temp(), async () => {
+		writeStyle(join(agentDir, "output-styles"), "Code.md", styleMd("Code"));
+		writeStyle(join(agentDir, "output-styles"), "Relaxed.md", styleMd("Relaxed"));
+		const { pi, handlers, commands } = fakePi();
+		outputStyles(pi);
+		const ctx = fakeCtx(temp());
+		await handlers.get("session_start")!({}, ctx);
+		const completions = commands.get("style")!.getArgumentCompletions;
+
+		const c = completions("c").map((c) => c.value);
+		assert.ok(c.includes("create"));
+		assert.ok(c.includes("Code")); // verb and style share the prefix
+		const r = completions("r").map((c) => c.value);
+		assert.ok(r.includes("Relaxed"));
+		assert.ok(r.includes("reload"));
+		assert.equal(completions("cr").length, 1); // deeper prefix narrows
+		assert.ok(completions("").every((c) => c.value !== "create")); // bare /style keeps keywords out
 	});
 });

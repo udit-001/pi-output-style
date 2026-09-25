@@ -217,6 +217,9 @@ export function writeActiveStyle(file: string, name: string | undefined): string
 export default function outputStyles(pi: ExtensionAPI) {
 	const builtinDir = path.join(import.meta.dirname, "..", "styles");
 	const stateFile = path.join(getAgentDir(), "output-styles.json");
+	/** The interview skill behind /style create: the message names the skill, the skill owns
+	 * the interview. Renaming the packaged skill is a one-place edit here. */
+	const CREATE_SKILL_PROMPT = "Use the create-output-style skill to write an output style";
 
 	let styles: OutputStyle[] = [];
 	let activeName: string | undefined;
@@ -266,16 +269,22 @@ export default function outputStyles(pi: ExtensionAPI) {
 		description: "Choose the active output style (/style <name|off|reload|create>)",
 		getArgumentCompletions: (argumentPrefix: string) => {
 			const prefix = argumentPrefix.trim().toLowerCase();
-			if ("create".startsWith(prefix) && prefix.length > 0) return [{ value: "create", label: "create" }];
-			if (["reload", "off"].some((k) => k.startsWith(prefix) && prefix.length > 0))
-				return ["reload", "off"].filter((k) => k.startsWith(prefix)).map((value) => ({ value, label: value }));
-			return styles
-				.filter((style) => style.name.toLowerCase().startsWith(prefix))
-				.map((style) => ({
-					value: style.name,
-					label: style.name,
-					...(style.description ? { description: style.description } : {}),
-				}));
+			const byValue = new Map<string, { value: string; label: string; description?: string }>();
+			if (prefix.length > 0) {
+				for (const verb of ["create", "reload", "off"]) {
+					if (verb.startsWith(prefix)) byValue.set(verb, { value: verb, label: verb });
+				}
+			}
+			for (const style of styles) {
+				if (style.name.toLowerCase().startsWith(prefix)) {
+					byValue.set(style.name.toLowerCase(), {
+						value: style.name,
+						label: style.name,
+						...(style.description ? { description: style.description } : {}),
+					});
+				}
+			}
+			return [...byValue.values()];
 		},
 		handler: async (args, ctx) => {
 			const requested = args.trim();
@@ -286,12 +295,13 @@ export default function outputStyles(pi: ExtensionAPI) {
 				return;
 			}
 
-			if (requested === "create") {
+			if (requested.toLowerCase() === "create" || requested.toLowerCase().startsWith("create ")) {
 				if (!ctx.isIdle()) {
 					ctx.ui.notify("Agent is busy; wait for the current turn to finish", "warning");
 					return;
 				}
-				pi.sendUserMessage("Use the create-output-style skill to write an output style.");
+				const hint = requested.length > "create".length ? requested.slice("create".length + 1).trim() : "";
+				pi.sendUserMessage(hint ? `${CREATE_SKILL_PROMPT}. Request: ${hint}` : `${CREATE_SKILL_PROMPT}.`);
 				return;
 			}
 
