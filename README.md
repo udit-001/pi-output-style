@@ -5,10 +5,10 @@ Switch how your pi agent answers with one command. A style is a markdown file â€
 ## Install
 
 ```bash
-pi install /absolute/path/to/output-style   # then restart pi, or /reload
+pi install git:github.com/udit-001/pi-output-style   # then restart pi
 ```
 
-`pi install` adds the path to `~/.pi/agent/settings.json` without copying, so edits are picked up by `/style reload`. Remove it with `pi remove /absolute/path/to/output-style`.
+`pi install` clones the repo into `~/.pi/agent/git/`; to pick up new styles, re-run `pi update --extensions` and restart pi. Remove it with `pi remove git:github.com/udit-001/pi-output-style`.
 
 ## What you get
 
