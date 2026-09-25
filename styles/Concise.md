@@ -1,6 +1,6 @@
 ---
 name: Concise
-description: Responds tersely -- results first, no preamble or narration
+description: Results first, terse by default -- no preamble or narration
 keep-coding-instructions: true
 ---
 

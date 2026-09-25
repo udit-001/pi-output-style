@@ -1,6 +1,6 @@
 ---
 name: Learning
-description: Pauses and asks you to write small pieces of code for hands-on practice
+description: Hands you small pieces of the code to write yourself
 keep-coding-instructions: true
 ---
 

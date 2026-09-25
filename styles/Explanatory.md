@@ -1,6 +1,6 @@
 ---
 name: Explanatory
-description: Explains implementation choices and codebase patterns as it works
+description: Briefs you on implementation choices as it codes
 keep-coding-instructions: true
 ---
 

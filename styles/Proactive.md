@@ -1,6 +1,6 @@
 ---
 name: Proactive
-description: Executes immediately, minimizes interruptions, prefers action over planning
+description: Starts implementing immediately, asks only when it matters
 keep-coding-instructions: true
 ---
 

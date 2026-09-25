@@ -1,6 +1,6 @@
 ---
 name: Focus
-description: Low-cognitive-load coding assistant for attention-limited work. Answer first, one decision at a time, cheap to verify, no filler.
+description: Answers first, one decision at a time, no filler
 keep-coding-instructions: true
 ---
 
